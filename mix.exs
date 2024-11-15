@@ -25,7 +25,8 @@ defmodule Nadia.Mixfile do
       {:exvcr, "~> 0.15.2", only: [:dev, :test]},
       {:earmark, "~> 1.4", only: :docs},
       {:ex_doc, ">= 0.0.0", only: :docs, runtime: false},
-      {:inch_ex, "~> 2.0.0", only: :docs}
+      {:inch_ex, "~> 2.0.0", only: :docs},
+      {:credo, "~> 1.7", only: [:dev, :test]}
     ]
   end
 
