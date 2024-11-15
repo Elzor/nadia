@@ -1,65 +1,30 @@
 name: Elixir CI
-
 on:
   push:
-    branches: [ master ]
+    branches: ["master"]
   pull_request:
-    branches: [ master ]
-
+    branches: ["master"]
+permissions:
+  contents: read
 jobs:
-  format:
-    name: Format
+  build:
+    name: Build and test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Setup Erlang/OTP + Elixir
-        uses: erlef/setup-beam@v1
+      - uses: actions/checkout@v3
+      - uses: erlef/setup-beam@v1
         with:
-          otp-version: '23.0'
-          elixir-version: '1.10.3'
-
-      - name: Install Dependencies
-        run: mix deps.get
-
-      - name: Format Check
-        run: mix format --check-formatted
-
-  test:
-    name: Test with OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
-    strategy:
-      fail-fast: false
-      matrix:
-        otp: ['22.3', '23.0']
-        elixir: ['1.8.2', '1.9.4', '1.10.3']
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Setup Erlang/OTP + Elixir
-      uses: erlef/setup-beam@v1
-      with:
-        otp-version: ${{matrix.otp}}
-        elixir-version: ${{matrix.elixir}}
-
-    - name: Install Dependencies
-      run: mix deps.get
-
-    - name: Run Tests
-      run: mix test
-
-  docs:
-    name: Documentations
-    runs-on: ubuntu-latest
-    needs: [format, test]
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Setup Erlang/OTP + Elixir
-        uses: erlef/setup-beam@v1
+          elixir-version: "1.15.7"
+          otp-version: "26.2.3"
+      - uses: actions/cache@v3
         with:
-          otp-version: '23.0'
-          elixir-version: '1.10.3'
-
-      - name: Evaluate Documentations
-        run: MIX_ENV=docs mix do deps.get, inch.report
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
+      - run: mix deps.get
+      - run: mix format --check-formatted
+      - run: mix deps.unlock --check-unused
+      - run: mix deps.compile
+      - run: mix compile --warnings-as-errors
+      - run: mix credo --strict
+      - run: mix test
